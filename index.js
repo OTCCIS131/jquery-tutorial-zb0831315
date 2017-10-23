@@ -1,27 +1,61 @@
-$(document).ready(function (){
-    var data = {
-        cost: 9.99
-    };
+$(document).ready(function () {
+    
+        var data = {
+            cost: 9.99
+        };
+    
+        /**
+         * Get the attendee count
+         */
+        function getAttendeeCount() {
+            return $('.attendee-list .row.attendee').length;
+        }
+    
+        function addAttendee() {
+            $('.attendee-list').append(
+                $('script[data-template="attendee"]').text()
+            );
+        }
+    
+        function syncPurchaseButton() {
+            // Total up the count for the checkout button total
+            $('#checkout-button span.amount').html(
+                '$' + data.cost * getAttendeeCount()
+            );
+        }
 
-    // Get the attendee count
-    function getAttendeeCount(){
-        return $('.attendee-list').append(
-            $('script[data-template="attendee"]').text()
-        )
-    }
+        // Events
+        $('.add-attendee').on('click', function (event){
+            event.preventDefault();
+            addAttendee();
+            $(this).trigger('attendee:add');
+        }).on('attendee:add', function (){
+            syncPurchaseButton();
+            syncRemoveButtons();
+        })
 
-    function syncPurchaseButton(){
-        $('#checkout-button span.amount').html(
-            '$' + data.cost * getAttendeeCount()
-        )
-    }
+        // Attach an event handler to the dynamic row remove button
+        $('#app').on('click', '.attendee .remove-attendee', function (event){
+            event.preventDefault();
+            var $row = $(event.target).closest('.attendee.row');
 
-    // Initialize the form
+            $row.remove();
+            $('#app').trigger('attendee:remove');
+        })
 
-    // Set up the unit cost of one ticket
-    $('#unit-price').html('$' + data.cost + 'ea.')
-
-    // Add one attendee by default on init
-    addAttendee()
-    syncPurchaseButon()
-})
+        $('#app').on('attendee:remove'), function (){
+            syncPurchaseButton();
+            syncRemoveButtons();
+        }
+    
+        //
+        // Initialize the form
+        //
+    
+        // Set up the unit cost of one ticket
+        $('#unit-price').html('$' + data.cost + ' ea.');
+    
+        // Add one attendee by default on init
+        addAttendee();
+        syncPurchaseButton();
+    });
